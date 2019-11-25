@@ -38,9 +38,10 @@ public class Frame1 {
 	private ArrayList<String> errors = new ArrayList<String>();
 	private JLabel gradeAddedNotification;
 	private Float low_boundary = (float) 0;
-	private Float high_boundary = (float) 0;
+	private Float high_boundary = (float) 100;
 	private JTextArea errors_log;
 	private JTextArea gradesDisplay;
+	private JTextField txtDeleteGrade;
 	/**
 	 * Launch the application.
 	 */
@@ -191,7 +192,7 @@ public class Frame1 {
 		textField_lowBoundary.setColumns(10);
 		
 		JLabel lblCurrentBounds = new JLabel("Current Bounds:    Low = " + low_boundary + " ; High = " + high_boundary + " ;");
-		lblCurrentBounds.setBounds(93, 181, 241, 19);
+		lblCurrentBounds.setBounds(94, 265, 286, 19);
 		manData.add(lblCurrentBounds);
 		
 		JLabel lblSetHighBoundary = new JLabel("Set High Boundary:");
@@ -227,7 +228,7 @@ public class Frame1 {
 		btnSet_1.setBounds(294, 30, 108, 23);
 		manData.add(btnSet_1);
 		
-		JLabel lblAppendGradeTo = new JLabel("Append Grade (1 input at a time)");
+		JLabel lblAppendGradeTo = new JLabel("Append Grade (1 input at a time):");
 		lblAppendGradeTo.setBounds(48, 94, 190, 28);
 		manData.add(lblAppendGradeTo);
 		
@@ -267,6 +268,55 @@ public class Frame1 {
 		gradeAddedNotification = new JLabel("");
 		gradeAddedNotification.setBounds(344, 101, 108, 14);
 		manData.add(gradeAddedNotification);
+		
+		JLabel lblDeleteGrade = new JLabel("Delete Grade (1 occurence): ");
+		lblDeleteGrade.setBounds(48, 182, 190, 14);
+		manData.add(lblDeleteGrade);
+		
+		txtDeleteGrade = new JTextField();
+		txtDeleteGrade.setBounds(248, 179, 86, 20);
+		manData.add(txtDeleteGrade);
+		txtDeleteGrade.setColumns(10);
+		
+		JLabel gradeDeletedNotification = new JLabel("");
+		gradeDeletedNotification.setBounds(344, 182, 108, 14);
+		manData.add(gradeDeletedNotification);
+		
+		JButton btnDelete = new JButton("Delete");
+		btnDelete.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String error_mes;
+				Float delGrade;
+				try {
+					delGrade = Float.parseFloat(txtDeleteGrade.getText());
+					if(grades.contains(delGrade)) {
+						grades.remove(delGrade);
+						gradeDeletedNotification.setText("Grade deleted!");
+						gradeDeletedNotification.setForeground(new Color(2, 200, 2));
+						
+					}
+					else {
+						error_mes = "grade: " + delGrade + " attempted to delete is not found in data set \n";
+						AppendErrorMessage(error_mes);
+						gradeDeletedNotification.setText("Grade not found!");
+						gradeDeletedNotification.setForeground(Color.red);
+					}
+				} catch (Exception exception) {
+					error_mes = "grade attempted to delete is not number, it is: " + txtDeleteGrade.getText() + "\n";
+					// adding error to the log and the errors array list
+					AppendErrorMessage(error_mes);
+					gradeDeletedNotification.setText("Deletion failed!");
+					gradeDeletedNotification.setForeground(Color.red);
+					//for (String a : errors)
+					//	System.out.println(a);
+				}
+			}
+		});
+		
+		btnDelete.setBounds(245, 210, 89, 23);
+		manData.add(btnDelete);
+		
+		
 		
 		JPanel analytics = new JPanel();
 		tabbedPane.addTab("Analytics", null, analytics, null);
