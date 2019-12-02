@@ -381,7 +381,13 @@ public class Frame1 {
 					while(sc.hasNextLine()) {
 						String input = sc.nextLine();
 						try {
-							grades.add(Float.valueOf(input.trim()).floatValue());
+							Float x = Float.valueOf(input.trim()).floatValue();
+							if(x >= low_boundary && x <= high_boundary) {
+								grades.add(x);
+							}
+							else {
+								AppendErrorMessage("Error adding value: " + x + " it is out of bounds.");
+							}
 						}
 						catch(Exception e) {
 							AppendErrorMessage("Error adding \"" + input + "\" from imported file.");
@@ -404,7 +410,13 @@ public class Frame1 {
 						} 
 						else if(inputLine.charAt(i) == '\n') {
 							try{
-								grades.add(Float.valueOf(temp.trim()).floatValue());
+								Float x = Float.valueOf(temp.trim()).floatValue();
+								if(x >= low_boundary && x <= high_boundary) {
+									grades.add(x);
+								}
+								else {
+									AppendErrorMessage("Error adding value: " + x + " it is out of bounds.");
+								}
 								temp = "";
 							}
 							catch(Exception e){
