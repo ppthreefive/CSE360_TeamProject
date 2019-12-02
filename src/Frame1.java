@@ -1,5 +1,6 @@
 
 
+
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
@@ -12,9 +13,8 @@ public class Frame1 {
 	private JTextField textField_highBoundary;
 	private JTextField txtEnterGrade;
 	private ArrayList<Float> grades = new ArrayList<Float>();
-	// private ArrayList<String> errors = new ArrayList<String>();
+	//private ArrayList<String> errors = new ArrayList<String>();
 	private ArrayList<String> userActionLog = new ArrayList<String>();
-	// private String graphString = "";
 	private JLabel boundariesInvalidNotification;
 	private JLabel gradeAddedNotification;
 	private Float low_boundary = (float) 0;
@@ -367,18 +367,71 @@ public class Frame1 {
 
 			try {
 				sc = new Scanner(selectedFile);
+				
+				
+				//OLD WAY NO ERROR DETECTION
+//				while (sc.hasNextFloat()) {
+//					grades.add(sc.nextFloat());
+//				}
+				
+				//File detection
+				if(selectedFile.toString().contains(".txt")) {
+					//.txt FILE Parse
+					//SKIPS SPACES & INVALID NUMS
+					while(sc.hasNextLine()) {
+						String input = sc.nextLine();
+						try {
+							grades.add(Float.valueOf(input.trim()).floatValue());
+						}
+						catch(Exception e) {
+							AppendErrorMessage("Error adding \"" + input + "\" from imported file.");
+						}
+					}
+				} 
+				else if(selectedFile.toString().contains(".csv")) {
+					//.CSV FILE PARSE
+					String inputLine = "";
+					while(sc.hasNextLine()) {
+						inputLine += sc.nextLine() + "\n";
+					}
+					inputLine = inputLine.replaceAll(",", "\n");//Changes commas to newlines
+					inputLine = inputLine.replaceAll(" ", "");//Gets rid of all spaces
+					//Process file string
+					String temp = "";
+					for(int i = 0; i < inputLine.length(); i++) {
+						if(!(inputLine.charAt(i) == '\n')) {
+							temp += inputLine.charAt(i);
+						} 
+						else if(inputLine.charAt(i) == '\n') {
+							try{
+								grades.add(Float.valueOf(temp.trim()).floatValue());
+								temp = "";
+							}
+							catch(Exception e){
+								if(!(temp.isEmpty())) {
+									AppendErrorMessage("Error adding \"" + temp + "\" from imported file.");
+									temp = "";
+								}
 
-				while (sc.hasNextFloat()) {
-					grades.add(sc.nextFloat());
+							}
+						}
+					}
+					
 				}
+				else {
+					AppendErrorMessage("Error adding file! (Unsupported file type)");
+					userActionLog.add("User failed to append data from a file.");
+				}	
+
+				userActionLog.add("User successfully appended grades from a file.");
 			} catch (FileNotFoundException e1) {
 				e1.printStackTrace();
+				userActionLog.add("User failed to append data from a file.");
 			}
 
 			UpdateDataDisplay();
 			updateAnalyticsDisplay();
 			updateGraphDisplay();
-			// JOptionPane.showMessageDialog(frmGradeAnalytics, sb.toString());
 		}
 	}
 
@@ -435,8 +488,22 @@ public class Frame1 {
 		JMenuItem mntmExportGradesReport = new JMenuItem("Export Grades Report");
 		mntmExportGradesReport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				ExportToFile("Grades Report.txt", "Report: \n\nData:\n" + gradesDisplay.getText() + "\n\nAnalytics:\n\n"
-						+ analyticsDisplay.getText() + "\n\nGraph:\n\n" + graphDisplay.getText());
+				
+
+				if(userActionLog.isEmpty()) {
+					ExportToFile("Grades Report.txt", "Report: " + "\n\nAnalytics:\n\n"
+							+ analyticsDisplay.getText() + "\n\nGraph:\n\n" + graphDisplay.getText());
+				}
+				else {
+					String userActions = "";
+					for(int i = 0; i < userActionLog.size(); i++) {
+						userActions += userActionLog.get(i) + "\n";
+					}
+					ExportToFile("Grades Report.txt", "Report: " + "\n\nAnalytics:\n\n"
+							+ analyticsDisplay.getText() + "\n\nGraph:\n\n" + graphDisplay.getText() + "\n\nUser Actions:\n\n" + userActions);
+				}
+				
+
 			}
 		});
 		mnExport.add(mntmExportGradesReport);
@@ -558,7 +625,7 @@ public class Frame1 {
 						updateGraphDisplay();
 					} else {
 						userActionLog.add("User attempted to add " + newGrade + " to the data set.");
-						String error_mes = "appended grade is not in bounds! Grade Entered: " + txtEnterGrade.getText()
+						String error_mes = "appended grade is not in bounds! Grade Entered: " + newGrade
 								+ ", Boundary Range: [" + low_boundary + "," + high_boundary + "]";
 						// adding error to the log and the errors array list
 						AppendErrorMessage(error_mes);
@@ -713,3 +780,4 @@ public class Frame1 {
 		// gradesDisplay.append(i + "\n");
 	}
 }
+
