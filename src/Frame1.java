@@ -1,23 +1,21 @@
 
 
-
-
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
 import java.io.*;
 import java.util.*;
 
-public class Frame1
-{
+public class Frame1 {
 	private JFrame frmGradeAnalytics;
 	private JTextField textField_lowBoundary;
 	private JTextField textField_highBoundary;
 	private JTextField txtEnterGrade;
-	private ArrayList<Float> grades = new ArrayList<Float>(); 
-	private ArrayList<String> errors = new ArrayList<String>();
+	private ArrayList<Float> grades = new ArrayList<Float>();
+	// private ArrayList<String> errors = new ArrayList<String>();
 	private ArrayList<String> userActionLog = new ArrayList<String>();
-	private String graphString = "";
+	// private String graphString = "";
+	private JLabel boundariesInvalidNotification;
 	private JLabel gradeAddedNotification;
 	private Float low_boundary = (float) 0;
 	private Float high_boundary = (float) 100;
@@ -30,19 +28,13 @@ public class Frame1
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args)
-	{
-		EventQueue.invokeLater(new Runnable()
-		{
-			public void run()
-			{
-				try
-				{
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
 					Frame1 window = new Frame1();
 					window.frmGradeAnalytics.setVisible(true);
-				} 
-				catch (Exception e)
-				{
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -52,110 +44,112 @@ public class Frame1
 	/**
 	 * Create the application.
 	 */
-	public Frame1()
-	{
+	public Frame1() {
 		initialize();
 	}
 
-	/** This method allows us to dynamically update the data display tab whenever the dataset is changed.
+	private void ExportToFile(String fileName, String content) {
+		JFileChooser fileCh = new JFileChooser();
+		fileCh.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		int returnVal = fileCh.showOpenDialog(frmGradeAnalytics);
+
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File path = fileCh.getSelectedFile();
+
+			File outputReport = null;
+			try {
+				outputReport = new File(path.toString() + File.separator + fileName);
+				FileWriter reportWriter = new FileWriter(outputReport);
+				reportWriter.write(content);
+				// outputReport.close();
+				System.out.println(fileName + "has been exported at " + path + File.separator + "report.txt");
+				reportWriter.close();
+			} catch (Exception e1) {
+				String errorMes = "Exporting report file failed. Tried path: " + path.toString();
+				AppendErrorMessage(errorMes);
+			}
+		}
+	}
+
+	/**
+	 * This method allows us to dynamically update the data display tab whenever the
+	 * dataset is changed.
 	 * 
 	 */
-	private void UpdateDataDisplay ()
-	{
-		class gradeComparetor implements Comparator<Float>
-		{
-			@Override
-			public int compare(Float o1, Float o2)
-			{
-				return (o1 < o2) ? 1 : 0;
-			}
-		}
-
+	private void UpdateDataDisplay() {
 		int dataLength = grades.size();
-		
-		if(this.gradesDisplay.getText().length() > 1) 
-		{
+
+		if (this.gradesDisplay.getText().length() > 1) {
 			this.gradesDisplay.setText("");
 		}
-		
-		// clear display when there is not a data
-		if (dataLength == 0)
-		{
-			this.gradesDisplay.setText("Please add data using the Data Manipulation tab. \nOr to add a data file select File->Open a File.");
-		}
-		else
-		{
-			ArrayList<Integer> columnLengthes = new ArrayList<Integer>();
-			
-			for (int index = 0; index < 4; index++) 
-			{
-				columnLengthes.add(dataLength/4);
-			}
-				
 
-			for (int index = 0; index < dataLength % 4; index++) 
-			{
+		// clear display when there is not a data
+		if (dataLength == 0) {
+			this.gradesDisplay.setText(
+					"Please add data using the Data Manipulation tab. \nOr to add a data file select File->Open a File.");
+		} else {
+			ArrayList<Integer> columnLengthes = new ArrayList<Integer>();
+
+			for (int index = 0; index < 4; index++) {
+				columnLengthes.add(dataLength / 4);
+			}
+
+			for (int index = 0; index < dataLength % 4; index++) {
 				columnLengthes.set(index, columnLengthes.get(index) + 1);
 			}
-				
-			//grades.sort(new gradeComparetor());
+
+			// grades.sort(new gradeComparetor());
 			Collections.sort(grades);
 			Collections.reverse(grades);
-			
+
 			ArrayList<ArrayList<Float>> columns = new ArrayList<ArrayList<Float>>();
 
 			int index = 0;
-			for (int i = 0; i < 4; i++)
-			{
-				//create an array list as a column
+			for (int i = 0; i < 4; i++) {
+				// create an array list as a column
 				ArrayList<Float> column = new ArrayList<Float>();
 
 				// append data to column
-				for (int j = 0; j < columnLengthes.get(i) && index < dataLength; j++)
-				{
+				for (int j = 0; j < columnLengthes.get(i) && index < dataLength; j++) {
 					column.add(grades.get(index));
 					index++;
 				}
-				
+
 				columns.add(column);
 			}
 
-			for (int rowIndex = 0; rowIndex < columnLengthes.get(0); rowIndex++)
-			{
-				for (int columnIndex = 0; columnIndex < 4; columnIndex++)
-				{
+			for (int rowIndex = 0; rowIndex < columnLengthes.get(0); rowIndex++) {
+				for (int columnIndex = 0; columnIndex < 4; columnIndex++) {
 					ArrayList<Float> column = columns.get(columnIndex);
-					
-					if (rowIndex < column.size()) 
-					{
+
+					if (rowIndex < column.size()) {
 						gradesDisplay.append(column.get(rowIndex).toString() + "\t");
-					}		
+					}
 				}
-				
+
 				gradesDisplay.append("\n");
 			}
 		}
 	}
 
-	/** This method allows us to dynamically update the analytics tab whenever the data set is changed.
+	/**
+	 * This method allows us to dynamically update the analytics tab whenever the
+	 * data set is changed.
 	 * 
 	 */
-	private void updateAnalyticsDisplay() 
-	{
+	private void updateAnalyticsDisplay() {
 		// Declare our variables
 		String output = "";
-		
+
 		int dataLength = grades.size();
-		
+
 		// Clears the text box if there is anything already in it
-		if(analyticsDisplay.getText().length() > 1) 
-		{
+		if (analyticsDisplay.getText().length() > 1) {
 			analyticsDisplay.setText("");
 		}
-		
-		//If there is no data, then we will still print out a display
-		if (dataLength == 0)
-		{
+
+		// If there is no data, then we will still print out a display
+		if (dataLength == 0) {
 			output = "";
 			output += "Amount of grades in this dataset: " + "0" + "\n";
 			output += "Mean: " + "0.0" + "\n";
@@ -163,10 +157,9 @@ public class Frame1
 			output += "Mode: " + "0.0" + "\n";
 			output += "Highest grade: " + "0.0" + "\n";
 			output += "Lowest grade: " + "0.0" + "\n";
-			
+
 			analyticsDisplay.setText(output);
-		}
-		else // Appends our analysis to the Analysis tab
+		} else // Appends our analysis to the Analysis tab
 		{
 			output += "Amount of grades in this dataset: " + this.grades.size() + "\n";
 			output += "Mean: " + getMean() + "\n";
@@ -174,216 +167,225 @@ public class Frame1
 			output += "Mode: " + getMode() + "\n";
 			output += "Highest grade: " + getMaxGrade() + "\n";
 			output += "Lowest grade: " + getMinGrade() + "\n";
-			
+
 			analyticsDisplay.append(output);
-		}		
+		}
 	}
-	
-	/** Finds the most frequent number in our data set
+
+	/**
+	 * Finds the most frequent number in our data set
 	 * 
 	 * @return float (mode)
 	 */
-	private float getMode() 
-	{
+	private float getMode() {
 		float mode = 0.0f;
-		int maxCount = 0; 
+		int maxCount = 0;
 
-	      for (int indexOne = 0; indexOne < this.grades.size(); indexOne++)
-	      {
-	         int count = 0;
-	         
-	         for (int indexTwo = 0; indexTwo < this.grades.size(); indexTwo++)
-	         {
-	            if (this.grades.get(indexTwo) == this.grades.get(indexOne)) 
-	            {
-	            	 count++;
-	            }
-	         }
+		for (int indexOne = 0; indexOne < this.grades.size(); indexOne++) {
+			int count = 0;
 
-	         if (count > maxCount)
-	         {
-	            maxCount = count;
-	            mode = this.grades.get(indexOne);
-	         }
-	      }
-		
+			for (int indexTwo = 0; indexTwo < this.grades.size(); indexTwo++) {
+				if (this.grades.get(indexTwo) == this.grades.get(indexOne)) {
+					count++;
+				}
+			}
+
+			if (count > maxCount) {
+				maxCount = count;
+				mode = this.grades.get(indexOne);
+			}
+		}
+
 		return mode;
 	}
-	
-	/** This method sorts the grades ArrayList and then gets the median.
+
+	/**
+	 * This method sorts the grades ArrayList and then gets the median.
 	 * 
 	 * @return float (median)
 	 */
-	private float getMedian() 
-	{
+	private float getMedian() {
 		float median = 0.0f;
 		Collections.sort(this.grades);
-		
-		if(this.grades.size() > 0) 
-		{
+
+		if (this.grades.size() > 0) {
 			int middle = (this.grades.size() / 2);
 			median = this.grades.get(middle);
 		}
-		
+
 		return median;
 	}
-	
-	/** This calculates the average of all grades imported into the grades ArrayList
+
+	/**
+	 * This calculates the average of all grades imported into the grades ArrayList
 	 * 
 	 * @return float (mean)
 	 */
-	private float getMean() 
-	{
+	private float getMean() {
 		float mean = 0.0f;
 		float sum = 0.0f;
-		
-		for (int index = 0; index < grades.size(); index++)
-		{
+
+		for (int index = 0; index < grades.size(); index++) {
 			sum += this.grades.get(index);
 		}
-		
-		if(this.grades.size() > 0) 
-		{
+
+		if (this.grades.size() > 0) {
 			mean = sum / this.grades.size();
 		}
-		
+
 		return mean;
 	}
-	
-	/** This calculates the highest grade in the grades ArrayList.
+
+	/**
+	 * This calculates the highest grade in the grades ArrayList.
 	 * 
 	 * @return float (maximum)
 	 */
-	private float getMaxGrade() 
-	{
+	private float getMaxGrade() {
 		float max = 0.0f;
-		
-		for (int index = 0; index < this.grades.size(); index++)
-		{
-			if(this.grades.get(index) > max) 
-			{
+
+		for (int index = 0; index < this.grades.size(); index++) {
+			if (this.grades.get(index) > max) {
 				max = this.grades.get(index);
 			}
 		}
-		
+
 		return max;
 	}
-	
-	/** This calculates the lowest grade in the grades ArrayList.
+
+	/**
+	 * This calculates the lowest grade in the grades ArrayList.
 	 * 
 	 * @return float (minimum)
 	 */
-	private float getMinGrade() 
-	{
+	private float getMinGrade() {
 		float min = 0.0f;
-		if(!(grades.isEmpty())) {
+		if (!(grades.isEmpty())) {
 			min = grades.get(0);
 		}
-		
-		for (int index = 0; index < this.grades.size(); index++)
-		{
-			if(this.grades.get(index) < min) 
-			{
+
+		for (int index = 0; index < this.grades.size(); index++) {
+			if (this.grades.get(index) < min) {
 				min = this.grades.get(index);
 			}
 		}
-		
+
 		return min;
 	}
 
-	/** This method allows the graph display tab to dynamically update the histogram based on the boundaries set by the user.
-	 * 	It will always have an distribution of 10 different ranges.
+	/**
+	 * This method allows the graph display tab to dynamically update the histogram
+	 * based on the boundaries set by the user. It will always have an distribution
+	 * of 10 different ranges.
 	 * 
 	 */
-	private void updateGraphDisplay() 
-	{
+	private void updateGraphDisplay() {
 		// Declare our variables here
 		String output = "";
 		float gradeRange = this.high_boundary - this.low_boundary;
 		float incremental = gradeRange / 10;
 		float sum = this.low_boundary;
 		ArrayList<Integer> numbers = new ArrayList<Integer>();
-		
+
 		// Makes sure to clear the text box if there is anything in it already
-		if(graphDisplay.getText().length() > 0) 
-		{
+		if (graphDisplay.getText().length() > 0) {
 			graphDisplay.setText("");
-			graphString = ""; //Used for Report
+			// graphString = ""; // Used for Report
 		}
-		
+
 		// Pushes the lowest number into the ArrayList first
-		numbers.add((int)sum);
-		
+		numbers.add((int) sum);
+
 		// Sets our increments and distribution range for our histogram
-		for (int indexOne = 0; indexOne < 10; indexOne++)
-		{
+		for (int indexOne = 0; indexOne < 10; indexOne++) {
 			sum += incremental;
-			numbers.add((int)sum);
+			numbers.add((int) sum);
 		}
-		
-		/* Here we do our comparisons to figure out where we print an 'X' character, 
-		 * 					meaning a number in our dataset falls within the range */
-		for (int index = 0; index < numbers.size(); index++)
-		{
-			if(index < numbers.size() - 1) 
-			{
+
+		/*
+		 * Here we do our comparisons to figure out where we print an 'X' character,
+		 * meaning a number in our dataset falls within the range
+		 */
+		for (int index = 0; index < numbers.size(); index++) {
+			if (index < numbers.size() - 1) {
 				int count = 0;
-				
-				if(numbers.get(index + 1) != numbers.get(numbers.size() - 1)) 
-				{
-					output += (Integer.toString(numbers.get(index)) + " to " + Integer.toString(numbers.get(index + 1) - 1) + ":\t|");
-					
-					for (int indexTwo = 0; indexTwo < this.grades.size(); indexTwo++)
-					{
-						if(this.grades.get(indexTwo) >= numbers.get(index) && this.grades.get(indexTwo) <= (numbers.get(index + 1) - 1)) 
-						{
+
+				if (numbers.get(index + 1) != numbers.get(numbers.size() - 1)) {
+					output += (Integer.toString(numbers.get(index)) + " to "
+							+ Integer.toString(numbers.get(index + 1) - 1) + ":\t|");
+
+					for (int indexTwo = 0; indexTwo < this.grades.size(); indexTwo++) {
+						if (this.grades.get(indexTwo) >= numbers.get(index)
+								&& this.grades.get(indexTwo) <= (numbers.get(index + 1) - 1)) {
 							count++;
 							output += "X";
 						}
 					}
-					
+
 					// This just makes it easier to see how many X's are in a range
 					output += "    (" + Integer.toString(count) + ")";
-				}
-				else 
-				{
-					output += (Integer.toString(numbers.get(index)) + " to " + Integer.toString(numbers.get(index + 1)) + ":\t|");
-					
-					for (int indexTwo = 0; indexTwo < this.grades.size(); indexTwo++)
-					{
-						if(this.grades.get(indexTwo) >= numbers.get(index) && this.grades.get(indexTwo) <= (numbers.get(index + 1))) 
-						{
+				} else {
+					output += (Integer.toString(numbers.get(index)) + " to " + Integer.toString(numbers.get(index + 1))
+							+ ":\t|");
+
+					for (int indexTwo = 0; indexTwo < this.grades.size(); indexTwo++) {
+						if (this.grades.get(indexTwo) >= numbers.get(index)
+								&& this.grades.get(indexTwo) <= (numbers.get(index + 1))) {
 							count++;
 							output += "X";
 						}
 					}
-					
+
 					// This just makes it easier to see how many X's are in a range
 					output += "    (" + Integer.toString(count) + ")";
 				}
-			
+
 				output += "\n";
 			}
 		}
-		
+
 		// Append our graph to the Graph Display tab
 		graphDisplay.append(output);
-		graphString = output;
+		// graphString = output;
 	}
-	
+
 	// add an error message to the log and the errors array list.
-	private void AppendErrorMessage(String errorMes)
-	{
-		errors.add(errorMes);
-		//Adds new line here instead of in original message so there aren't any new lines in error log array
+	private void AppendErrorMessage(String errorMes) {
+		// errors.add(errorMes);
+		// Adds new line here instead of in original message so there aren't any new
+		// lines in error log array
 		errors_log.append(errorMes + "\n");
+	}
+
+	private void AppendGradesFromFile() {
+		JFileChooser fileCh = new JFileChooser("."); // current folder
+		int returnVal = fileCh.showOpenDialog(frmGradeAnalytics);
+
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File selectedFile = fileCh.getSelectedFile();
+			Scanner sc;
+
+			try {
+				sc = new Scanner(selectedFile);
+
+				while (sc.hasNextFloat()) {
+					grades.add(sc.nextFloat());
+				}
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			}
+
+			UpdateDataDisplay();
+			updateAnalyticsDisplay();
+			updateGraphDisplay();
+			// JOptionPane.showMessageDialog(frmGradeAnalytics, sb.toString());
+		}
 	}
 
 	/**
 	 * Initialize the contents of the frame.
 	 */
-	private void initialize()
-	{
+	private void initialize() {
 		frmGradeAnalytics = new JFrame();
 		frmGradeAnalytics.setBackground(Color.BLUE);
 		frmGradeAnalytics.setFont(new Font("Dialog", Font.PLAIN, 14));
@@ -397,127 +399,55 @@ public class Frame1
 		JMenu mnFile = new JMenu("File");
 		menuBar.add(mnFile);
 
-		JMenuItem mntmOpenAFile = new JMenuItem("Open a File...");
-		
-		mntmOpenAFile.addActionListener(new ActionListener()
-		{
-			public void actionPerformed (ActionEvent e)
-			{
-				JFileChooser fileCh = new JFileChooser("."); //current folder
-				
-				int returnVal = fileCh.showOpenDialog(frmGradeAnalytics);
-				
-				if (returnVal == JFileChooser.APPROVE_OPTION)
-				{
-					File selectedFile = fileCh.getSelectedFile();
-					Scanner sc;
-					
-					try
-					{
-						sc = new Scanner(selectedFile);
-						
-						while(sc.hasNextFloat())
-						{
-							grades.add(sc.nextFloat());
-						}
-					} 
-					catch (FileNotFoundException e1)
-					{
-						e1.printStackTrace();
-					}
-					
-					UpdateDataDisplay();
-					updateAnalyticsDisplay();
-					updateGraphDisplay();
-					//  JOptionPane.showMessageDialog(frmGradeAnalytics, sb.toString());
-				}
+		JMenuItem mntmOpenAFile = new JMenuItem("Open File...");
+
+		mntmOpenAFile.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent e) {
+				grades.clear();
+				AppendGradesFromFile();
 			}
 		});
-		
+
 		mnFile.add(mntmOpenAFile);
 
 		JMenuItem mntmCloseProgram = new JMenuItem("Close Program");
-		
-		mntmCloseProgram.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
+
+		mntmCloseProgram.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
 				System.exit(0);
 			}
 		});
-		
-		/*
-		 * 
-		 * Generate Report Tab
-		 * 
-		 * */
-		JMenuItem mntmGenerateReport = new JMenuItem("Generate Report");
-		mntmGenerateReport.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				
-				String Report = "Report:\n\n";
-				
-				//Append Analytics
-				Report += "Analytics: \n";
-				if(grades.isEmpty()) {
-					Report += "Size of data set: No Data" + "\n";
-					Report += "Mean: No Data" + "\n";
-					Report += "Median: No Data" + "\n";
-					Report += "Mode: No Data" +"\n";
-					Report += "Highest Grade: No Data" +"\n";
-					Report += "Lowest Grade: No Data" + "\n";
-				} else {
-					Report += "Size of data set: " + grades.size() + "\n";
-					Report += "Mean: " + getMean() + "\n";
-					Report += "Median: " + getMedian() + "\n";
-					Report += "Mode: " + getMode() + "\n";
-					Report += "Highest Grade: " + getMaxGrade() + "\n";
-					Report += "Lowest Grade: " + getMinGrade() + "\n";
-				}
-				
-				Report += "\n";
-				
-				if(!(graphString == "")) {
-					Report += "Graph\n";
-					Report += graphString;
-				}
-				
-				Report += "\n";
-				
-				//Append User Actions
-				Report += "User Actions Log: \n";
-				if(userActionLog.isEmpty()) {
-					Report += "No User Actions. \n";
-				} 
-				else {
-					for(int log = 0; log < userActionLog.size(); log++){
-						Report += (userActionLog.get(log) + "\n");
-					}
-				}
-				
-				Report += "\n";
-				
-				Report += "Error Log: \n";
-				if(errors.isEmpty()) {
-					Report += "There were no errors logged.";
-				}
-				else {
-					for(int i = 0; i < errors.size(); i++) {
-						Report += errors.get(i) + "\n";
-					}
-				}
-				
-				System.out.println(Report);//DEBUG TAKE OUT LATER
-				//Redirect to a .txt file.
-				
+
+		JMenuItem mntmAppendFile = new JMenuItem("Append Grades From File...");
+		mntmAppendFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				AppendGradesFromFile();
 			}
 		});
-		mnFile.add(mntmGenerateReport);
-		
+		mnFile.add(mntmAppendFile);
+
 		mnFile.add(mntmCloseProgram);
 
-		JMenu mnEdit = new JMenu("Edit");
-		menuBar.add(mnEdit);
+		JMenu mnExport = new JMenu("Export");
+		menuBar.add(mnExport);
+
+		JMenuItem mntmExportGradesReport = new JMenuItem("Export Grades Report");
+		mntmExportGradesReport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ExportToFile("Grades Report.txt", "Report: \n\nData:\n" + gradesDisplay.getText() + "\n\nAnalytics:\n\n"
+						+ analyticsDisplay.getText() + "\n\nGraph:\n\n" + graphDisplay.getText());
+			}
+		});
+		mnExport.add(mntmExportGradesReport);
+
+		JMenuItem mntmExportErrorLog = new JMenuItem("Export Error Log");
+		mntmExportErrorLog.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ExportToFile("Errors Log.txt", "Errors: \n\n" + errors_log.getText());
+			}
+		});
+		mnExport.add(mntmExportErrorLog);
 
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		frmGradeAnalytics.getContentPane().add(tabbedPane, BorderLayout.CENTER);
@@ -535,8 +465,9 @@ public class Frame1
 		manData.add(textField_lowBoundary);
 		textField_lowBoundary.setColumns(10);
 
-		JLabel lblCurrentBounds = new JLabel("Current Bounds:    Low = " + low_boundary + " ; High = " + high_boundary + " ;");
-		lblCurrentBounds.setBounds(94, 265, 286, 19);
+		JLabel lblCurrentBounds = new JLabel(
+				"Current Bounds:    Low = " + low_boundary + " ; High = " + high_boundary + " ;");
+		lblCurrentBounds.setBounds(48, 243, 404, 19);
 		manData.add(lblCurrentBounds);
 
 		JLabel lblSetHighBoundary = new JLabel("Set High Boundary:");
@@ -549,37 +480,47 @@ public class Frame1
 		textField_highBoundary.setColumns(10);
 
 		JButton btnSet_1 = new JButton("Set Bounds");
-		
-		btnSet_1.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				try
-				{
+
+		btnSet_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+
 					String highBoundary_str = textField_highBoundary.getText();
 					String lowBoundary_str = textField_lowBoundary.getText();
-					high_boundary = Float.parseFloat(highBoundary_str);
-					low_boundary = Float.parseFloat(lowBoundary_str);
-					lblCurrentBounds.setText("Current Bounds:    Low = " + low_boundary + " ; High = " + high_boundary + " ;");
-					userActionLog.add("User Manually Set Bounds. (Low: " + low_boundary + ", High:" + high_boundary + ")");
-					
-					updateGraphDisplay();
-				}
-				catch(Exception exception)
-				{
-					//do something here to handle the non-number input
-					String error_mes = "input values are not all numbers, input(low boundary and high boundary): " 
-							+ textField_highBoundary.getText() + ", " + textField_lowBoundary.getText();
+					float high_boundary_local = Float.parseFloat(highBoundary_str);
+					float low_boundary_local = Float.parseFloat(lowBoundary_str);
+					if (low_boundary_local > high_boundary_local) {
+						throw new Exception();
+					} else {
+						high_boundary = high_boundary_local;
+						low_boundary = low_boundary_local;
+					}
 
+					lblCurrentBounds
+							.setText("Current Bounds:    Low = " + low_boundary + " ; High = " + high_boundary + " ;");
+
+					userActionLog
+							.add("User Manually Set Bounds. (Low: " + low_boundary + ", High:" + high_boundary + ")");
+
+					boundariesInvalidNotification.setText("");
+					updateGraphDisplay();
+				} catch (Exception exception) {
+					// do something here to handle the non-number input
+
+					String error_mes = "input values are not all numbers, input(low boundary and high boundary): "
+							+ textField_lowBoundary.getText() + ", " + textField_highBoundary.getText();
+					boundariesInvalidNotification.setText("Invalid new boundaries");
+					boundariesInvalidNotification.setForeground(Color.RED);
 					// adding error to the log and the errors array list
 					AppendErrorMessage(error_mes);
-					//for (String a : errors)
-					//	System.out.println(a);
+					// for (String a : errors)
+					// System.out.println(a);
 				}
-
+				textField_highBoundary.setText("");
+				textField_lowBoundary.setText("");
 			}
 		});
-		
+
 		btnSet_1.setBounds(294, 30, 108, 23);
 		manData.add(btnSet_1);
 
@@ -593,34 +534,32 @@ public class Frame1
 		txtEnterGrade.setColumns(10);
 
 		JButton btnAppend = new JButton("Append");
-		btnAppend.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
+		btnAppend.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
 				Float newGrade;
-				
-				try
-				{
-					
+
+				try {
+
 					newGrade = Float.parseFloat(txtEnterGrade.getText());
-					//Checks if the grade is in bounds
-					if((newGrade >= low_boundary) && (newGrade <= high_boundary)) {
+					txtEnterGrade.setText("");
+					// Checks if the grade is in bounds
+					if ((newGrade >= low_boundary) && (newGrade <= high_boundary)) {
 						gradeAddedNotification.setText("Grade added!");
 						grades.add(newGrade);
 
 						// set notification to be color for success appending
 						gradeAddedNotification.setForeground(new Color(2, 200, 2));
-						
-						//Add Success to log
+
+						// Add Success to log
 						userActionLog.add("User successfully added new grade to data set. New Grade: " + newGrade);
-						
+
 						UpdateDataDisplay();
 						updateAnalyticsDisplay();
 						updateGraphDisplay();
-					} 
-					else {
+					} else {
 						userActionLog.add("User attempted to add " + newGrade + " to the data set.");
-						String error_mes = "appended grade is not in bounds! Grade Entered: " + txtEnterGrade.getText() + ", Boundary Range: [" + low_boundary + "," + high_boundary + "]";
+						String error_mes = "appended grade is not in bounds! Grade Entered: " + txtEnterGrade.getText()
+								+ ", Boundary Range: [" + low_boundary + "," + high_boundary + "]";
 						// adding error to the log and the errors array list
 						AppendErrorMessage(error_mes);
 						gradeAddedNotification.setText("Out of bounds!");
@@ -628,11 +567,9 @@ public class Frame1
 						// set notification to be red for success appending
 						gradeAddedNotification.setForeground(Color.red);
 					}
-				}
-				catch (Exception exception)
-				{
+				} catch (Exception exception) {
 					userActionLog.add("User attempted to add " + txtEnterGrade.getText() + " to the data set.");
-					
+
 					String error_mes = "appended grade is not number, it is: " + txtEnterGrade.getText();
 					// adding error to the log and the errors array list
 					AppendErrorMessage(error_mes);
@@ -640,13 +577,13 @@ public class Frame1
 
 					// set notification to be red for success appending
 					gradeAddedNotification.setForeground(Color.red);
-					//for (String a : errors)
-					//	System.out.println(a);
+					// for (String a : errors)
+					// System.out.println(a);
 				}
 
 			}
 		});
-		
+
 		btnAppend.setBounds(245, 129, 89, 23);
 		manData.add(btnAppend);
 
@@ -668,53 +605,52 @@ public class Frame1
 		manData.add(gradeDeletedNotification);
 
 		JButton btnDelete = new JButton("Delete");
-		
-		btnDelete.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
+
+		btnDelete.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
 				String error_mes;
 				Float delGrade;
-				
-				try
-				{
+
+				try {
 					delGrade = Float.parseFloat(txtDeleteGrade.getText());
-					if(grades.contains(delGrade))
-					{
+					txtDeleteGrade.setText("");
+					if (grades.contains(delGrade)) {
 						grades.remove(delGrade);
 						gradeDeletedNotification.setText("Grade deleted!");
 						gradeDeletedNotification.setForeground(new Color(2, 200, 2));
-						
-						//Add Success to log
-						userActionLog.add("User successfully removed a grade from the data set. Grade Removed: " + delGrade);
-						
+
+						// Add Success to log
+						userActionLog
+								.add("User successfully removed a grade from the data set. Grade Removed: " + delGrade);
+
 						UpdateDataDisplay();
 						updateAnalyticsDisplay();
 						updateGraphDisplay();
-					}
-					else 
-					{
+					} else {
 						error_mes = "grade: " + delGrade + " attempted to delete is not found in data set";
 						AppendErrorMessage(error_mes);
 						gradeDeletedNotification.setText("Grade not found!");
 						gradeDeletedNotification.setForeground(Color.red);
 					}
-				} 
-				catch (Exception exception) 
-				{
+				} catch (Exception exception) {
 					error_mes = "grade attempted to delete is not number, it is: " + txtDeleteGrade.getText();
 					// adding error to the log and the errors array list
 					AppendErrorMessage(error_mes);
 					gradeDeletedNotification.setText("Deletion failed!");
 					gradeDeletedNotification.setForeground(Color.red);
-					//for (String a : errors)
-					//	System.out.println(a);
+					// for (String a : errors)
+					// System.out.println(a);
 				}
 			}
 		});
 
 		btnDelete.setBounds(245, 210, 89, 23);
 		manData.add(btnDelete);
+
+		boundariesInvalidNotification = new JLabel("");
+
+		boundariesInvalidNotification.setBounds(294, 60, 181, 13);
+		manData.add(boundariesInvalidNotification);
 
 		/* This is the analytics tab */
 		JPanel analytics = new JPanel();
@@ -729,8 +665,8 @@ public class Frame1
 		analyticsDisplay.setEditable(false);
 		scrollPane_2.setViewportView(analyticsDisplay);
 		analytics.add(scrollPane_2);
-		updateAnalyticsDisplay(); //UPDATES ON CREATION
-		
+		updateAnalyticsDisplay(); // UPDATES ON CREATION
+
 		/* This is the display data tab */
 		JPanel displayData = new JPanel();
 		tabbedPane.addTab("Display Data", null, displayData, null);
@@ -744,7 +680,7 @@ public class Frame1
 		gradesDisplay = new JTextArea();
 		gradesDisplay.setEditable(false);
 		scrollPane_1.setViewportView(gradesDisplay);
-		UpdateDataDisplay(); //UPDATES ON CREATION
+		UpdateDataDisplay(); // UPDATES ON CREATION
 
 		/* This is the display graph tab */
 		JPanel displayGraph = new JPanel();
@@ -772,8 +708,8 @@ public class Frame1
 		errorLog.add(scrollPane);
 		errors_log = new JTextArea();
 		scrollPane.setViewportView(errors_log);
-		//for (int i = 0; i < 1000; i++)
-		//	gradesDisplay.append(i + "\n");
+		errors_log.setEditable(false);
+		// for (int i = 0; i < 1000; i++)
+		// gradesDisplay.append(i + "\n");
 	}
 }
-
