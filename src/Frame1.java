@@ -1,5 +1,16 @@
 
 
+/* Authors: Kyle Summers, Zachary Cooper, Zhiwei Liang, Phillip Pham
+ * Instructor: Debra Calliss
+ * Course: CSE360 Section: 70641
+ * 
+ * Project Title: Grade Analytics (Team Project)
+ * Project Description: This program's purpose is to allow a user to input grades within determined 
+ * 			boundaries (floor and ceiling), and perform analytics based on the input data which
+ * 			can either be .txt or .csv formatted files containing floating point numbers. A user
+ * 			can decide to export a general report of the analytics on the data, and also manipulate
+ * 			the data set to their needs.
+ * */
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -8,12 +19,12 @@ import java.io.*;
 import java.util.*;
 
 public class Frame1 {
+	// Declare our global variables
 	private JFrame frmGradeAnalytics;
 	private JTextField textField_lowBoundary;
 	private JTextField textField_highBoundary;
 	private JTextField txtEnterGrade;
 	private ArrayList<Float> grades = new ArrayList<Float>();
-	//private ArrayList<String> errors = new ArrayList<String>();
 	private ArrayList<String> userActionLog = new ArrayList<String>();
 	private JLabel boundariesInvalidNotification;
 	private JLabel gradeAddedNotification;
@@ -34,8 +45,9 @@ public class Frame1 {
 				try {
 					Frame1 window = new Frame1();
 					window.frmGradeAnalytics.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
+					
+				} catch (Exception error) {
+					error.printStackTrace();
 				}
 			}
 		});
@@ -48,6 +60,12 @@ public class Frame1 {
 		initialize();
 	}
 
+	/** This method allows exporting of report files with a given file name and the content to
+	 * 		export as parameters.
+	 * 
+	 * @param fileName (String)
+	 * @param content (String)
+	 */
 	private void ExportToFile(String fileName, String content) {
 		JFileChooser fileCh = new JFileChooser();
 		fileCh.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -72,9 +90,7 @@ public class Frame1 {
 	}
 
 	/**
-	 * This method allows us to dynamically update the data display tab whenever the
-	 * dataset is changed.
-	 * 
+	 * This method allows us to dynamically update the data display tab whenever the data set is changed.
 	 */
 	private void UpdateDataDisplay() {
 		int dataLength = grades.size();
@@ -83,11 +99,12 @@ public class Frame1 {
 			this.gradesDisplay.setText("");
 		}
 
-		// clear display when there is not a data
+		// Default display when there is no data already input
 		if (dataLength == 0) {
 			this.gradesDisplay.setText(
 					"Please add data using the Data Manipulation tab. \nOr to add a data file select File->Open a File.");
-		} else {
+		} 
+		else { // When there is already data, we can display it properly
 			ArrayList<Integer> columnLengthes = new ArrayList<Integer>();
 
 			for (int index = 0; index < 4; index++) {
@@ -98,19 +115,20 @@ public class Frame1 {
 				columnLengthes.set(index, columnLengthes.get(index) + 1);
 			}
 
-			// grades.sort(new gradeComparetor());
+			// First sort the grades, and then reverse it so we get descending order
 			Collections.sort(grades);
 			Collections.reverse(grades);
 
 			ArrayList<ArrayList<Float>> columns = new ArrayList<ArrayList<Float>>();
 
 			int index = 0;
-			for (int i = 0; i < 4; i++) {
+			
+			for (int iterator = 0; iterator < 4; iterator++) {
 				// create an array list as a column
 				ArrayList<Float> column = new ArrayList<Float>();
 
 				// append data to column
-				for (int j = 0; j < columnLengthes.get(i) && index < dataLength; j++) {
+				for (int iteratorTwo = 0; iteratorTwo < columnLengthes.get(iterator) && index < dataLength; iteratorTwo++) {
 					column.add(grades.get(index));
 					index++;
 				}
@@ -154,7 +172,7 @@ public class Frame1 {
 			output += "Amount of grades in this dataset: " + "0" + "\n";
 			output += "Mean: " + "0.0" + "\n";
 			output += "Median: " + "0.0" + "\n";
-			output += "Mode: " + "0.0" + "\n";
+			output += "Mode(s): " + "0.0" + "\n";
 			output += "Highest grade: " + "0.0" + "\n";
 			output += "Lowest grade: " + "0.0" + "\n";
 
@@ -164,7 +182,7 @@ public class Frame1 {
 			output += "Amount of grades in this dataset: " + this.grades.size() + "\n";
 			output += "Mean: " + getMean() + "\n";
 			output += "Median: " + getMedian() + "\n";
-			output += "Mode: " + getMode() + "\n";
+			output += "Mode(s): " + getMode() + "\n";
 			output += "Highest grade: " + getMaxGrade() + "\n";
 			output += "Lowest grade: " + getMinGrade() + "\n";
 
@@ -173,30 +191,63 @@ public class Frame1 {
 	}
 
 	/**
-	 * Finds the most frequent number in our data set
+	 * Finds the most frequent numbers in our data set
 	 * 
 	 * @return float (mode)
 	 */
-	private float getMode() {
-		float mode = 0.0f;
+	private String getMode() {
+		// Declare local variables
+		ArrayList<Float> modes = new ArrayList<Float>();
+		ArrayList<Float> aux = new ArrayList<Float>();
+		String modesString = "";
 		int maxCount = 0;
+		
+		// Clones the grades to an auxiliary ArrayList
+		for (int iterator = 0; iterator < this.grades.size(); iterator++)
+		{
+			aux.add(this.grades.get(iterator));
+		}
 
-		for (int indexOne = 0; indexOne < this.grades.size(); indexOne++) {
+		// Compares the indexes of the auxiliary ArrayList and counts frequency
+		for (int indexOne = 0; indexOne < aux.size(); indexOne++) {
 			int count = 0;
 
-			for (int indexTwo = 0; indexTwo < this.grades.size(); indexTwo++) {
-				if (this.grades.get(indexTwo) == this.grades.get(indexOne)) {
+			for (int indexTwo = 0; indexTwo < aux.size(); indexTwo++) {
+				if (aux.get(indexTwo).equals(aux.get(indexOne))) {
 					count++;
 				}
 			}
+			
+			// Removes the mode from the auxiliary array so it doesn't get added multiple times
+			float mode = aux.get(indexOne);
+			for (int iterator = 0; iterator < count; iterator++)
+			{
+				aux.remove(mode);
+			}
 
+			// Clears the ArrayList and then adds the only mode if it has the singular highest frequency
 			if (count > maxCount) {
 				maxCount = count;
-				mode = this.grades.get(indexOne);
+				modes.clear();
+				modes.add(mode);
+			}
+			// Adds the mode to the existing modes if their frequency is the same
+			else if(count == maxCount)
+			{
+				modes.add(mode);
 			}
 		}
+		
+		// Appends all of the modes in the modes ArrayList to a single string
+		for (int index = 0; index < modes.size(); index++)
+		{
+			modesString += modes.get(index) + ", ";
+		}
+		
+		// Removes the last comma from the string
+		modesString = modesString.substring(0, modesString.length() - 2);
 
-		return mode;
+		return modesString;
 	}
 
 	/**
@@ -275,9 +326,8 @@ public class Frame1 {
 
 	/**
 	 * This method allows the graph display tab to dynamically update the histogram
-	 * based on the boundaries set by the user. It will always have an distribution
+	 * based on the boundaries set by the user. It will always have a distribution
 	 * of 10 different ranges.
-	 * 
 	 */
 	private void updateGraphDisplay() {
 		// Declare our variables here
@@ -304,7 +354,7 @@ public class Frame1 {
 
 		/*
 		 * Here we do our comparisons to figure out where we print an 'X' character,
-		 * meaning a number in our dataset falls within the range
+		 * meaning a number in our data set falls within the range
 		 */
 		for (int index = 0; index < numbers.size(); index++) {
 			if (index < numbers.size() - 1) {
@@ -349,14 +399,20 @@ public class Frame1 {
 		// graphString = output;
 	}
 
-	// add an error message to the log and the errors array list.
-	private void AppendErrorMessage(String errorMes) {
+	/**
+	 * This allows the program to add an error message to the log and the errors array list.
+	 * @param errorMessage (String)
+	 */
+	private void AppendErrorMessage(String errorMessage) {
 		// errors.add(errorMes);
 		// Adds new line here instead of in original message so there aren't any new
 		// lines in error log array
-		errors_log.append(errorMes + "\n");
+		errors_log.append(errorMessage + "\n");
 	}
 
+	/**
+	 * This method allows a user to add a data set of grades to the program.
+	 */
 	private void AppendGradesFromFile() {
 		JFileChooser fileCh = new JFileChooser("."); // current folder
 		int returnVal = fileCh.showOpenDialog(frmGradeAnalytics);
@@ -368,79 +424,105 @@ public class Frame1 {
 			try {
 				sc = new Scanner(selectedFile);
 				
-				
+				/*
 				//OLD WAY NO ERROR DETECTION
-//				while (sc.hasNextFloat()) {
-//					grades.add(sc.nextFloat());
-//				}
+				while (sc.hasNextFloat()) {
+					grades.add(sc.nextFloat());
+				}
+				*/
 				
 				//File detection
 				if(selectedFile.toString().contains(".txt")) {
+					int lineCount = 1;
+					
 					//.txt FILE Parse
 					//SKIPS SPACES & INVALID NUMS
 					while(sc.hasNextLine()) {
-						String input = sc.nextLine();
+						String input = sc.nextLine();						
 						try {
 							Float x = Float.valueOf(input.trim()).floatValue();
 							if(x >= low_boundary && x <= high_boundary) {
 								grades.add(x);
+								lineCount++;
 							}
 							else {
-								AppendErrorMessage("Error adding value: " + x + " it is out of bounds.");
+								AppendErrorMessage("Error adding value: " + x + " from imported file. It is out of bounds. (LINE #: " + lineCount + ")");
+								lineCount++;
 							}
 						}
 						catch(Exception e) {
-							AppendErrorMessage("Error adding \"" + input + "\" from imported file.");
+							AppendErrorMessage("Error adding \"" + input + "\" from imported file. It is not a valid number. "
+									+ "(LINE #: " + lineCount + ")");
 						}
 					}
-				} 
+				} //.CSV FILE PARSE
 				else if(selectedFile.toString().contains(".csv")) {
-					//.CSV FILE PARSE
-					String inputLine = "";
-					while(sc.hasNextLine()) {
-						inputLine += sc.nextLine() + "\n";
-					}
-					inputLine = inputLine.replaceAll(",", "\n");//Changes commas to newlines
-					inputLine = inputLine.replaceAll(" ", "");//Gets rid of all spaces
-					//Process file string
-					String temp = "";
-					for(int i = 0; i < inputLine.length(); i++) {
-						if(!(inputLine.charAt(i) == '\n')) {
-							temp += inputLine.charAt(i);
-						} 
-						else if(inputLine.charAt(i) == '\n') {
-							try{
-								Float x = Float.valueOf(temp.trim()).floatValue();
-								if(x >= low_boundary && x <= high_boundary) {
-									grades.add(x);
-								}
-								else {
-									AppendErrorMessage("Error adding value: " + x + " it is out of bounds.");
-								}
-								temp = "";
-							}
-							catch(Exception e){
-								if(!(temp.isEmpty())) {
-									AppendErrorMessage("Error adding \"" + temp + "\" from imported file.");
-									temp = "";
-								}
-
-							}
-						}
-					}
+					// Initialize our local variables
+					String row = "";
+					int lineCount = 1;
 					
+					// BufferedReader allows us to split strings into separate values by a delimiter such as a comma
+					BufferedReader csvReader = new BufferedReader(new FileReader(selectedFile));
+					
+					try
+					{
+						// Loops for however many valid lines exist in the .csv file
+						while((row = csvReader.readLine()) != null)
+						{
+							// Here we split our row into separate strings split by the comma delimiter
+							String[] data = row.split(",");
+							
+							// Loops for however many comma separated values it read in that single line
+							for (int index = 0; index < data.length; index++)
+							{
+								try
+								{
+									// Checks to see if the value is blank first.
+									if(data[index].length() == 0)
+									{
+										AppendErrorMessage("Error adding value from imported file. It is blank. (LINE #: " + lineCount + ")");
+									}
+									// Then checks to see if it falls within the boundaries set within the program.
+									else if(Float.parseFloat(data[index]) >= low_boundary && Float.parseFloat(data[index]) <= high_boundary)
+									{
+										grades.add(Float.valueOf(data[index]));
+									}
+									// Throws error if out of bounds.
+									else
+									{
+										AppendErrorMessage("Error adding value: " + data[index] + " from imported file. It is out of bounds. (LINE #: " + lineCount + ")");
+									}
+								} 
+								// This error is thrown when the value is not a valid number. 
+								// For example if "abc" is attempted to be parsed as a Float, this error will occur.
+								catch (NumberFormatException error)
+								{
+									AppendErrorMessage("Error adding value: \"" + data[index] + "\" from imported file. It is not a number. (LINE #: " + lineCount + ")");
+								}
+							}
+							
+							// Increment the line counter
+							lineCount++;
+						}
+					} // This error is thrown if there is a problem reading the .csv file
+					catch (IOException error)
+					{
+						AppendErrorMessage("Error reading file.");
+					}
 				}
-				else {
+				else { // If the file is neither .txt or .csv
 					AppendErrorMessage("Error adding file! (Unsupported file type)");
 					userActionLog.add("User failed to append data from a file.");
 				}	
 
 				userActionLog.add("User successfully appended grades from a file.");
-			} catch (FileNotFoundException e1) {
-				e1.printStackTrace();
+			} catch (FileNotFoundException error) { // Thrown if the file is not found.
+				error.printStackTrace();
+				AppendErrorMessage("Error reading file. It was not found.");
 				userActionLog.add("User failed to append data from a file.");
 			}
 
+			// Update our display, analytics, and graph tab as soon as there is valid data input
 			UpdateDataDisplay();
 			updateAnalyticsDisplay();
 			updateGraphDisplay();
@@ -451,6 +533,7 @@ public class Frame1 {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		
 		frmGradeAnalytics = new JFrame();
 		frmGradeAnalytics.setBackground(Color.BLUE);
 		frmGradeAnalytics.setFont(new Font("Dialog", Font.PLAIN, 14));
@@ -461,47 +544,38 @@ public class Frame1 {
 		JMenuBar menuBar = new JMenuBar();
 		frmGradeAnalytics.setJMenuBar(menuBar);
 
+		/* Creates the File drop down of the menu bar */
 		JMenu mnFile = new JMenu("File");
 		menuBar.add(mnFile);
-
 		JMenuItem mntmOpenAFile = new JMenuItem("Open File...");
-
 		mntmOpenAFile.addActionListener(new ActionListener() {
-
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent event) {
 				grades.clear();
 				AppendGradesFromFile();
 			}
 		});
-
 		mnFile.add(mntmOpenAFile);
-
 		JMenuItem mntmCloseProgram = new JMenuItem("Close Program");
-
 		mntmCloseProgram.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent event) {
 				System.exit(0);
 			}
 		});
-
 		JMenuItem mntmAppendFile = new JMenuItem("Append Grades From File...");
 		mntmAppendFile.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent event) {
 				AppendGradesFromFile();
 			}
 		});
 		mnFile.add(mntmAppendFile);
-
 		mnFile.add(mntmCloseProgram);
 
+		/* Creates the Export drop down of the menu bar */
 		JMenu mnExport = new JMenu("Export");
 		menuBar.add(mnExport);
-
 		JMenuItem mntmExportGradesReport = new JMenuItem("Export Grades Report");
 		mntmExportGradesReport.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
-
+			public void actionPerformed(ActionEvent event) {
 				if(userActionLog.isEmpty()) {
 					ExportToFile("Grades Report.txt", "Report: " + "\n\nAnalytics:\n\n"
 							+ analyticsDisplay.getText() + "\n\nGraph:\n\n" + graphDisplay.getText());
@@ -514,12 +588,9 @@ public class Frame1 {
 					ExportToFile("Grades Report.txt", "Report: " + "\n\nAnalytics:\n\n"
 							+ analyticsDisplay.getText() + "\n\nGraph:\n\n" + graphDisplay.getText() + "\n\nUser Actions:\n\n" + userActions);
 				}
-				
-
 			}
 		});
 		mnExport.add(mntmExportGradesReport);
-
 		JMenuItem mntmExportErrorLog = new JMenuItem("Export Error Log");
 		mntmExportErrorLog.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -527,43 +598,55 @@ public class Frame1 {
 			}
 		});
 		mnExport.add(mntmExportErrorLog);
+		
+		/* Creates the 'Help' drop down in the menu bar */
+		JMenu mnHelp = new JMenu("Help");
+		menuBar.add(mnHelp);
+		
+		/* Creates the "About" option in the Help drop down */
+		JMenuItem mntmAbout = new JMenuItem("About");
+		mntmAbout.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e)
+			{
+				String about = "                             This program was developed by: \n\n"
+						+ "Kyle Summers, Zachary Cooper, Zhiwei Liang, & Phillip Pham\n\n"
+						+ "              In the Fall of 2019 at Arizona State University, Tempe.\n\n"
+						+ "Course: Intro to Software Engineering (CSE360) with Dr. Debra Calliss";
+				JOptionPane.showMessageDialog(frmGradeAnalytics, about, "About", JOptionPane.INFORMATION_MESSAGE);
+			}
+		});
+		mnHelp.add(mntmAbout);
 
+		/* Creates the Data Manipulation tab */
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		frmGradeAnalytics.getContentPane().add(tabbedPane, BorderLayout.CENTER);
-
 		JPanel manData = new JPanel();
 		tabbedPane.addTab("Data Manipulation", null, manData, null);
 		manData.setLayout(null);
 
+		/* This deals with the "Set Bounds" button and labels */
 		JLabel lblSetLowBoundary = new JLabel("Set Low Boundary:");
 		lblSetLowBoundary.setBounds(48, 11, 124, 19);
 		manData.add(lblSetLowBoundary);
-
 		textField_lowBoundary = new JTextField();
 		textField_lowBoundary.setBounds(182, 10, 86, 20);
 		manData.add(textField_lowBoundary);
 		textField_lowBoundary.setColumns(10);
-
 		JLabel lblCurrentBounds = new JLabel(
 				"Current Bounds:    Low = " + low_boundary + " ; High = " + high_boundary + " ;");
 		lblCurrentBounds.setBounds(48, 243, 404, 19);
 		manData.add(lblCurrentBounds);
-
 		JLabel lblSetHighBoundary = new JLabel("Set High Boundary:");
 		lblSetHighBoundary.setBounds(48, 56, 124, 14);
 		manData.add(lblSetHighBoundary);
-
 		textField_highBoundary = new JTextField();
 		textField_highBoundary.setBounds(182, 53, 86, 20);
 		manData.add(textField_highBoundary);
 		textField_highBoundary.setColumns(10);
-
 		JButton btnSet_1 = new JButton("Set Bounds");
-
 		btnSet_1.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent event) {
 				try {
-
 					String highBoundary_str = textField_highBoundary.getText();
 					String lowBoundary_str = textField_lowBoundary.getText();
 					float high_boundary_local = Float.parseFloat(highBoundary_str);
@@ -599,26 +682,23 @@ public class Frame1 {
 				textField_lowBoundary.setText("");
 			}
 		});
-
 		btnSet_1.setBounds(294, 30, 108, 23);
 		manData.add(btnSet_1);
 
+		/* This deals with the "Append Grade" button and labels */
 		JLabel lblAppendGradeTo = new JLabel("Append Grade (1 input at a time):");
 		lblAppendGradeTo.setBounds(48, 94, 190, 28);
 		manData.add(lblAppendGradeTo);
-
 		txtEnterGrade = new JTextField();
 		txtEnterGrade.setBounds(248, 98, 86, 20);
 		manData.add(txtEnterGrade);
 		txtEnterGrade.setColumns(10);
-
 		JButton btnAppend = new JButton("Append");
 		btnAppend.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent event) {
 				Float newGrade;
 
 				try {
-
 					newGrade = Float.parseFloat(txtEnterGrade.getText());
 					txtEnterGrade.setText("");
 					// Checks if the grade is in bounds
@@ -662,29 +742,26 @@ public class Frame1 {
 
 			}
 		});
-
 		btnAppend.setBounds(245, 129, 89, 23);
 		manData.add(btnAppend);
-
+		
+		/* Notification that tells the user that the grade was added. */
 		gradeAddedNotification = new JLabel("");
 		gradeAddedNotification.setBounds(344, 101, 108, 14);
 		manData.add(gradeAddedNotification);
-
+		
+		/* This deals with the "Delete Grade" button and labels */
 		JLabel lblDeleteGrade = new JLabel("Delete Grade (1 occurence): ");
 		lblDeleteGrade.setBounds(48, 182, 190, 14);
 		manData.add(lblDeleteGrade);
-
 		txtDeleteGrade = new JTextField();
 		txtDeleteGrade.setBounds(248, 179, 86, 20);
 		manData.add(txtDeleteGrade);
 		txtDeleteGrade.setColumns(10);
-
 		JLabel gradeDeletedNotification = new JLabel("");
 		gradeDeletedNotification.setBounds(344, 182, 108, 14);
 		manData.add(gradeDeletedNotification);
-
 		JButton btnDelete = new JButton("Delete");
-
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String error_mes;
@@ -722,12 +799,11 @@ public class Frame1 {
 				}
 			}
 		});
-
 		btnDelete.setBounds(245, 210, 89, 23);
 		manData.add(btnDelete);
 
+		/* Notification that tells the user their bounds are invalid */
 		boundariesInvalidNotification = new JLabel("");
-
 		boundariesInvalidNotification.setBounds(294, 60, 181, 13);
 		manData.add(boundariesInvalidNotification);
 
